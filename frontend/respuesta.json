@@ -1,0 +1,33 @@
+{
+    "ram": {
+        "usada": 2632933376,
+        "libre": 105734144,
+        "total": 4064755712
+    },
+    "procesos": [
+        {
+            "pid": 1,
+            "usuario": "root",
+            "ram_usada_mb": 9,
+            "ram_porcentaje": 0.2,
+            "comando": "/sbin/init",
+            "oom_score": 0
+        },
+        {
+            "pid": 2,
+            "usuario": "root",
+            "ram_usada_mb": 0,
+            "ram_porcentaje": 0,
+            "comando": "[kthreadd]",
+            "oom_score": 0
+        },
+        {
+            "pid": 3,
+            "usuario": "root",
+            "ram_usada_mb": 0,
+            "ram_porcentaje": 0,
+            "comando": "[rcu_gp]",
+            "oom_score": 0
+        }
+    ]
+}
