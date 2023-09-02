@@ -13,10 +13,13 @@ import (
 )
 
 type InfoRAM struct {
-	Usada uint64 `json:"usada"`
-	Libre uint64 `json:"libre"`
-	Total uint64 `json:"total"`
+	Usada    uint64 `json:"usada"`
+	Libre    uint64 `json:"libre"`
+	BufCache uint64 `json:"bufcache"`
+	Total    uint64 `json:"total"`
 }
+
+var usedRamProc uint64
 
 type InfoProceso struct {
 	PID           int     `json:"pid"`
@@ -37,9 +40,10 @@ func ObtenerInfoRAM() (InfoRAM, error) {
 	valores := strings.Fields(lineas[1])
 	usada, _ := strconv.ParseUint(valores[2], 10, 64)
 	libre, _ := strconv.ParseUint(valores[3], 10, 64)
+	bufCache, _ := strconv.ParseUint(valores[5], 10, 64)
 	total, _ := strconv.ParseUint(valores[1], 10, 64)
 
-	return InfoRAM{Usada: usada, Libre: libre, Total: total}, nil
+	return InfoRAM{Usada: usada, Libre: libre, BufCache: bufCache, Total: total}, nil
 }
 
 func ObtenerListaProcesos() ([]InfoProceso, error) {
@@ -50,7 +54,7 @@ func ObtenerListaProcesos() ([]InfoProceso, error) {
 
 	lineas := strings.Split(string(out), "\n")
 	procesos := []InfoProceso{}
-
+	usedRamProc = 0
 	for _, linea := range lineas[1:] {
 		campos := strings.Fields(linea)
 		if len(campos) >= 11 {
@@ -63,7 +67,7 @@ func ObtenerListaProcesos() ([]InfoProceso, error) {
 			if err != nil {
 				fmt.Println("Error al obtener el OOM score:", err)
 			}
-
+			usedRamProc += ramUsada
 			procesos = append(procesos, InfoProceso{
 				PID:           pid,
 				Usuario:       usuario,
