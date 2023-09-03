@@ -8,14 +8,14 @@
   background-position: center;
   background-size: cover;
   min-width: 100vh;
-  min-height: 150vh;
+  min-height: 160vh;
   flex-direction: column;
 }
 
 .fondo2{
   background-color: #121211;
   width: 900px;
-  height: 450px;
+  height: 500px;
   border-radius: 20px;
   margin-top: 60px;
 }
@@ -25,7 +25,7 @@
   width: 1100px;
   height: auto;
   border-radius: 20px;
-  margin-top: 120px;
+  margin-top: 170px;
 }
 
 .App-header {
@@ -47,20 +47,7 @@
   color: rgb(255, 255, 255);
 }
 
-.App-resultado {
-  background-color: #2ace14;
-  margin-top: 60px;
-  margin-bottom: 40px;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 15vh;
-  width: 70vh;
-  font-size: calc(50px + 2vmin);
-  color: rgb(0, 0, 0);
-}
+
 
 .letraBoton{
   font-size: 40px;

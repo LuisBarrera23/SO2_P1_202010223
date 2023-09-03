@@ -13,37 +13,54 @@ import (
 )
 
 type InfoRAM struct {
-	Usada    uint64 `json:"usada"`
-	Libre    uint64 `json:"libre"`
-	BufCache uint64 `json:"bufcache"`
 	Total    uint64 `json:"total"`
+	Usada    uint64 `json:"usada"`
+	Activa   uint64 `json:"activa"`
+	Inactiva uint64 `json:"inactiva"`
+	Libre    uint64 `json:"libre"`
+	Bufers   uint64 `json:"bufers"`
 }
 
-var usedRamProc uint64
-
 type InfoProceso struct {
-	PID           int     `json:"pid"`
-	Usuario       string  `json:"usuario"`
-	RAMUsadaMB    uint64  `json:"ram_usada_mb"`
-	RAMPorcentaje float64 `json:"ram_porcentaje"`
-	Comando       string  `json:"comando"`
-	OOMScore      int     `json:"oom_score"`
+	PID      int    `json:"pid"`
+	Usuario  string `json:"usuario"`
+	Comando  string `json:"comando"`
+	OOMScore int    `json:"oom_score"`
 }
 
 func ObtenerInfoRAM() (InfoRAM, error) {
-	out, err := exec.Command("free", "-b").Output()
+	out, err := exec.Command("vmstat", "-s", "-S", "M").Output()
 	if err != nil {
 		return InfoRAM{}, err
 	}
 
-	lineas := strings.Split(string(out), "\n")
-	valores := strings.Fields(lineas[1])
-	usada, _ := strconv.ParseUint(valores[2], 10, 64)
-	libre, _ := strconv.ParseUint(valores[3], 10, 64)
-	bufCache, _ := strconv.ParseUint(valores[5], 10, 64)
-	total, _ := strconv.ParseUint(valores[1], 10, 64)
+	lines := strings.Split(string(out), "\n")
+	info := InfoRAM{}
 
-	return InfoRAM{Usada: usada, Libre: libre, BufCache: bufCache, Total: total}, nil
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+
+		value, _ := strconv.ParseUint(fields[0], 10, 64)
+		switch {
+		case strings.Contains(line, "M memoria total"):
+			info.Total = value
+		case strings.Contains(line, "M memoria usada"):
+			info.Usada = value
+		case strings.Contains(line, "M memoria activa"):
+			info.Activa = value
+		case strings.Contains(line, "M memoria inactiva"):
+			info.Inactiva = value
+		case strings.Contains(line, "M memoria libre"):
+			info.Libre = value
+		case strings.Contains(line, "M memoria de búfer"):
+			info.Bufers = value
+		}
+	}
+
+	return info, nil
 }
 
 func ObtenerListaProcesos() ([]InfoProceso, error) {
@@ -54,27 +71,21 @@ func ObtenerListaProcesos() ([]InfoProceso, error) {
 
 	lineas := strings.Split(string(out), "\n")
 	procesos := []InfoProceso{}
-	usedRamProc = 0
 	for _, linea := range lineas[1:] {
 		campos := strings.Fields(linea)
 		if len(campos) >= 11 {
 			pid, _ := strconv.Atoi(campos[1])
-			ramUsada, _ := strconv.ParseUint(campos[5], 10, 64)
-			ramPorcentaje, _ := strconv.ParseFloat(campos[3], 64)
 			usuario := campos[0]
 			comando := campos[10]
 			oomScore, err := obtenerOOMScore(campos[1])
 			if err != nil {
 				fmt.Println("Error al obtener el OOM score:", err)
 			}
-			usedRamProc += ramUsada
 			procesos = append(procesos, InfoProceso{
-				PID:           pid,
-				Usuario:       usuario,
-				RAMUsadaMB:    ramUsada / 1024, // Convertir a MB
-				RAMPorcentaje: ramPorcentaje,
-				Comando:       comando,
-				OOMScore:      oomScore,
+				PID:      pid,
+				Usuario:  usuario,
+				Comando:  comando,
+				OOMScore: oomScore,
 			})
 		}
 	}
